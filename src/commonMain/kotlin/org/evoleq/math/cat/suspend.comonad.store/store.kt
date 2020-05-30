@@ -42,6 +42,12 @@ suspend operator fun <S, A, B, C> CoKlStore<S, A, B>.times(other: CoKlStore<S, B
     store -> by(other)( store.duplicate() map by(this@times) )
 }
 
+@MathCatDsl
 fun <S, A> Store<S, A>.indexed(): IStore<S,S,A> = IStore(data){
     s -> by(this@indexed)(s)
+}
+
+@MathCatDsl
+fun <S,A> Store<S, A>.keyStore(): KeyStore<S, S,A> = KeyStore(data) {
+    this@keyStore
 }

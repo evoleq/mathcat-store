@@ -1,19 +1,24 @@
 package org.evoleq.math.cat.suspend.comonad.store
 
 import kotlinx.coroutines.CoroutineScope
+import org.evoleq.math.cat.marker.MathCatDsl
 import org.evoleq.math.cat.suspend.morphism.ScopedSuspended
 import org.evoleq.math.cat.suspend.morphism.by
 
-//typealias KeyStore<K,W,P> = ScopedSuspended<K,Store<W,P>>
 
-interface KeyStore<W,K,P> : ScopedSuspended<K,ScopedSuspended<W, P>> {
-    val data: W
+
+interface KeyStore<A,B,T> : ScopedSuspended<B,ScopedSuspended<A, T>> {
+    val data: A
 }
 
+@MathCatDsl
+@Suppress("FunctionName")
 fun <W,K,P>KeyStore(data: W,arrow: suspend CoroutineScope.(K)->ScopedSuspended<W, P>):KeyStore<W,K,P> = object : KeyStore<W,K,P> {
     override val data: W =  data
     override val morphism: suspend CoroutineScope.(K) -> ScopedSuspended<W, P> = arrow
 }
+
+@MathCatDsl
 fun <W,K,P> KeyStore<W,K,P>.indexed(): IStore<W,K,P> = IStore(data) {
     k -> by(by(this@indexed)(k))(data)
 }
