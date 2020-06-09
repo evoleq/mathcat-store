@@ -16,6 +16,7 @@
 package org.evoleq.math.cat.suspend.comonad.store
 
 import kotlinx.coroutines.CoroutineScope
+import org.evoleq.math.cat.marker.MathCatDsl
 import org.evoleq.math.cat.suspend.morphism.ScopedSuspended
 import org.evoleq.math.cat.suspend.morphism.by
 
@@ -26,12 +27,15 @@ interface IStore<A, B, T> : ScopedSuspended<B, T> {
     }
 }
 
+@MathCatDsl
 @Suppress("FunctionName")
 fun <A, B, T> IStore(data: A, reader:  suspend CoroutineScope.(B)->T): IStore<A, B, T> = object : IStore<A, B, T> {
     override val data: A = data
     override val morphism: suspend CoroutineScope.(B) -> T = reader
 }
 
+@MathCatDsl
+@Suppress("FunctionName")
 fun <A, B, T> IStore(data: A): (suspend CoroutineScope.(B)->T)-> IStore<A, B, T> = {
     lambda -> IStore(data){index -> lambda(index)}
 }
