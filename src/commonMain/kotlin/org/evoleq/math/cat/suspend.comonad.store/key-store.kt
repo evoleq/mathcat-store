@@ -24,6 +24,14 @@ import org.evoleq.math.cat.suspend.morphism.by
 
 interface KeyStore<A,B,T> : ScopedSuspended<B,ScopedSuspended<A, T>> {
     val data: A
+    
+    suspend infix fun <U> map(f: suspend CoroutineScope.(T)->U):KeyStore<A, B, U> = KeyStore(data) {
+        b -> ScopedSuspended(f) o by(this@KeyStore)(b)
+    }
+    
+    suspend infix fun <C> coMap(f: suspend CoroutineScope.(C)->B): KeyStore<A, C, T> = KeyStore(data) {
+        c -> by(this@KeyStore) ( f(c) )
+    }
 }
 
 @MathCatDsl
