@@ -13,32 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.evoleq.math.cat.suspend.comonad.store
+package org.evoleq.math.cat.comonad.store
 
-import kotlinx.coroutines.CoroutineScope
 import org.evoleq.math.cat.marker.MathCatDsl
-import org.evoleq.math.cat.suspend.morphism.ScopedSuspended
-import org.evoleq.math.cat.suspend.morphism.by
-import org.evoleq.math.cat.suspend.morphism.o
+import org.evoleq.math.cat.morphism.Morphism
+import org.evoleq.math.cat.morphism.by
+import org.evoleq.math.cat.morphism.o
 
 
-interface KeyStore<A,B,T> : ScopedSuspended<B,ScopedSuspended<A, T>> {
+interface KeyStore<A,B,T> : Morphism<B,Morphism<A, T>> {
     val data: A
     
-    suspend infix fun <U> map(f: suspend CoroutineScope.(T)->U):KeyStore<A, B, U> = KeyStore(data) {
-        b -> ScopedSuspended(f) o by(this@KeyStore)(b)
+    infix fun <U> map(f: (T)->U):KeyStore<A, B, U> = KeyStore(data) {
+        b -> Morphism(f) o by(this@KeyStore)(b)
     }
     
-    suspend infix fun <C> coMap(f: suspend CoroutineScope.(C)->B): KeyStore<A, C, T> = KeyStore(data) {
+    infix fun <C> coMap(f: (C)->B): KeyStore<A, C, T> = KeyStore(data) {
         c -> by(this@KeyStore) ( f(c) )
     }
 }
 
 @MathCatDsl
 @Suppress("FunctionName")
-fun <W,K,P>KeyStore(data: W,arrow: suspend CoroutineScope.(K)->ScopedSuspended<W, P>):KeyStore<W,K,P> = object : KeyStore<W,K,P> {
+fun <W,K,P>KeyStore(data: W,arrow: (K)->Morphism<W, P>):KeyStore<W,K,P> = object : KeyStore<W,K,P> {
     override val data: W =  data
-    override val morphism: suspend CoroutineScope.(K) -> ScopedSuspended<W, P> = arrow
+    override val morphism: (K) -> Morphism<W, P> = arrow
 }
 
 @MathCatDsl
@@ -47,7 +46,7 @@ fun <W,K,P> KeyStore<W,K,P>.indexed(): IStore<W,K,P> = IStore(data) {
 }
 
 fun <W,K,P,L,Q> KeyStore<W,K,P>.times(other: KeyStore<P,L,Q>): KeyStore<W,Pair<K,L>,Q> = KeyStore(data){
-    pair -> ScopedSuspended {
+    pair -> Morphism{
         w -> by(by(other)(pair.second))(by(by(this@times)(pair.first))(w))
     }
 }
